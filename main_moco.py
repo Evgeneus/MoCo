@@ -161,7 +161,7 @@ def main_worker(gpu, ngpus_per_node, args):
         encoder = resnet.ResNet18
     else:
         encoder = models.__dict__[args.arch]
-    model = moco.builder_single_gpu.MoCo(
+    model = moco.builder.MoCo(
         encoder, args.moco_dim, args.moco_k,
         args.moco_m, args.moco_t, args.mlp)
     print(model)
