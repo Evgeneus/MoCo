@@ -24,7 +24,6 @@ import torchvision.models as models
 
 import moco.loader
 import moco.builder
-from moco import resnet
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -158,7 +157,8 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     print("=> creating model '{}'".format(args.arch))
     if args.arch == "resnet18":
-        encoder = resnet.ResNet18
+        from moco.resnet_hacks import modify_resnet_model
+        encoder = modify_resnet_model(models.__dict__[args.arch], cifar_stem=True, v1=True)
     else:
         encoder = models.__dict__[args.arch]
     model = moco.builder.MoCo(
