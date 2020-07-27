@@ -24,6 +24,8 @@ import torchvision.models as models
 
 import moco.loader
 import moco.builder_single_gpu
+from moco import resnet
+
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -37,7 +39,7 @@ parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=32, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=0, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -159,10 +161,14 @@ def main_worker(gpu, args):
 
     # create model
     print("=> creating model '{}'".format(args.arch))
+    if args.arch == "resnet18":
+        encoder = resnet.ResNet18
+    else:
+        encoder = models.__dict__[args.arch]
     model = moco.builder_single_gpu.MoCo(
-        models.__dict__[args.arch],
-        args.moco_dim, args.moco_k, args.moco_m, args.moco_t, args.mlp)
-    # print(model)
+        encoder, args.moco_dim, args.moco_k,
+        args.moco_m, args.moco_t, args.mlp)
+    print(model)
 
     # if args.distributed:
     #     # For multiprocessing distributed, DistributedDataParallel constructor

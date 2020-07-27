@@ -24,6 +24,7 @@ import torchvision.models as models
 
 import moco.loader
 import moco.builder
+from moco import resnet
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -156,9 +157,13 @@ def main_worker(gpu, ngpus_per_node, args):
                                 world_size=args.world_size, rank=args.rank)
     # create model
     print("=> creating model '{}'".format(args.arch))
-    model = moco.builder.MoCo(
-        models.__dict__[args.arch],
-        args.moco_dim, args.moco_k, args.moco_m, args.moco_t, args.mlp)
+    if args.arch == "resnet18":
+        encoder = resnet.ResNet18
+    else:
+        encoder = models.__dict__[args.arch]
+    model = moco.builder_single_gpu.MoCo(
+        encoder, args.moco_dim, args.moco_k,
+        args.moco_m, args.moco_t, args.mlp)
     print(model)
 
     if args.distributed:
