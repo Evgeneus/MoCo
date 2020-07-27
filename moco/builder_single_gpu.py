@@ -2,6 +2,8 @@
 import torch
 import torch.nn as nn
 
+from moco.resnet_hacks import modify_resnet_model
+
 
 class MoCo(nn.Module):
     """
@@ -23,8 +25,8 @@ class MoCo(nn.Module):
 
         # create the encoders
         # num_classes is the output fc dimension
-        self.encoder_q = base_encoder(num_classes=dim)
-        self.encoder_k = base_encoder(num_classes=dim)
+        self.encoder_q = modify_resnet_model(base_encoder(num_classes=dim), cifar_stem=True, v1=True)
+        self.encoder_k = modify_resnet_model(base_encoder(num_classes=dim), cifar_stem=True, v1=True)
 
         if mlp:  # hack: brute-force replacement
             dim_mlp = self.encoder_q.fc.weight.shape[1]

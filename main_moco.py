@@ -156,13 +156,8 @@ def main_worker(gpu, ngpus_per_node, args):
                                 world_size=args.world_size, rank=args.rank)
     # create model
     print("=> creating model '{}'".format(args.arch))
-    if args.arch == "resnet18":
-        from moco.resnet_hacks import modify_resnet_model
-        encoder = modify_resnet_model(models.__dict__[args.arch], cifar_stem=True, v1=True)
-    else:
-        encoder = models.__dict__[args.arch]
     model = moco.builder.MoCo(
-        encoder, args.moco_dim, args.moco_k,
+        models.__dict__[args.arch], args.moco_dim, args.moco_k,
         args.moco_m, args.moco_t, args.mlp)
     print(model)
 
