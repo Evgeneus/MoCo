@@ -2,3 +2,16 @@ __pycache__
 logs/
 datasets/
 
+# mypy
+.mypy_cache/
+
+/.idea/*
+*.xml
+*.pyc
+*.RData
+*.Rhistory
+.Rproj.user
+.ipynb_checkpoints/*
+.DS_Store
+
+
