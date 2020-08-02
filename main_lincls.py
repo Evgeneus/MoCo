@@ -143,12 +143,21 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     print("=> creating model '{}'".format(args.arch))
     model = models.__dict__[args.arch]()
+    def _create_encoder(encoder, num_classes=128):
+        # encoder = base_encoder(num_classes=num_classes)
+        encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        encoder.maxpool = nn.Identity()
+
+        return encoder
+    model = _create_encoder(model)
+
 
     # freeze all layers but the last fc
     for name, param in model.named_parameters():
         if name not in ['fc.weight', 'fc.bias']:
             param.requires_grad = False
     # init the fc layer
+    model.fc = nn.Linear(512, 10)
     model.fc.weight.data.normal_(mean=0.0, std=0.01)
     model.fc.bias.data.zero_()
 
@@ -255,7 +264,7 @@ def main_worker(gpu, ngpus_per_node, args):
     #     ]))
 
     transform_train = transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.RandomResizedCrop(32),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize])
@@ -282,8 +291,8 @@ def main_worker(gpu, ngpus_per_node, args):
     #     num_workers=args.workers, pin_memory=True)
 
     transform_val = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize(32),
+            # transforms.CenterCrop(224),
             transforms.ToTensor(),
             normalize,
         ])
