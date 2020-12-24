@@ -2,8 +2,6 @@
 import torch
 import torch.nn as nn
 
-from moco.resnet_hacks import modify_resnet_model
-
 
 class MoCo(nn.Module):
     """
@@ -25,8 +23,8 @@ class MoCo(nn.Module):
 
         # create the encoders
         # num_classes is the output fc dimension
-        self.encoder_q = modify_resnet_model(base_encoder(num_classes=dim), cifar_stem=True, v1=True)
-        self.encoder_k = modify_resnet_model(base_encoder(num_classes=dim), cifar_stem=True, v1=True)
+        self.encoder_q = self._create_encoder(base_encoder=base_encoder, num_classes=dim)
+        self.encoder_k = self._create_encoder(base_encoder=base_encoder, num_classes=dim)
 
         if mlp:  # hack: brute-force replacement
             dim_mlp = self.encoder_q.fc.weight.shape[1]
@@ -42,6 +40,13 @@ class MoCo(nn.Module):
         self.queue = nn.functional.normalize(self.queue, dim=0)
 
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+
+    def _create_encoder(self, base_encoder, num_classes):
+        encoder = base_encoder(num_classes=num_classes)
+        encoder.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        encoder.maxpool = nn.Identity()
+
+        return encoder
 
     @torch.no_grad()
     def _momentum_update_key_encoder(self):

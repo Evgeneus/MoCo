@@ -24,7 +24,6 @@ import torchvision.models as models
 
 import moco.loader
 import moco.builder_single_gpu
-from moco import resnet
 
 
 model_names = sorted(name for name in models.__dict__
@@ -34,11 +33,11 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR',
 #                     help='path to dataset')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
-                        ' (default: resnet50)')
+                        ' (default: resnet18)')
 parser.add_argument('-j', '--workers', default=0, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
@@ -161,12 +160,8 @@ def main_worker(gpu, args):
 
     # create model
     print("=> creating model '{}'".format(args.arch))
-    if args.arch == "resnet18":
-        encoder = resnet.ResNet18
-    else:
-        encoder = models.__dict__[args.arch]
     model = moco.builder_single_gpu.MoCo(
-        encoder, args.moco_dim, args.moco_k,
+        models.__dict__[args.arch], args.moco_dim, args.moco_k,
         args.moco_m, args.moco_t, args.mlp)
     print(model)
 
@@ -227,17 +222,23 @@ def main_worker(gpu, args):
 
     # Data loading code
     # traindir = os.path.join(args.data, 'train')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                  std=[0.229, 0.224, 0.225])
+
+    # normalizer for CIFAR
+    normalize = transforms.Normalize(mean=[0.4914, 0.4822, 0.4465],
+                                     std=[0.2023, 0.1994, 0.2010])
+
     if args.aug_plus:
         # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
+        # augmentation for CIFAR datasets
         augmentation = [
-            transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
+            transforms.RandomResizedCrop(32, scale=(0.2, 1.)),
             transforms.RandomApply([
                 transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
             ], p=0.8),
             transforms.RandomGrayscale(p=0.2),
-            transforms.RandomApply([moco.loader.GaussianBlur([.1, 2.])], p=0.5),
+            # transforms.RandomApply([moco.loader.GaussianBlur([.1, 2.])], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize
