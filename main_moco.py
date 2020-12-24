@@ -218,17 +218,24 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # Data loading code
     # traindir = os.path.join(args.data, 'train')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    # normalizer for ImageNet
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                  std=[0.229, 0.224, 0.225])
+
+    # normalizer for CIFAR
+    normalize = transforms.Normalize(mean=[0.4914, 0.4822, 0.4465],
+                                     std=[0.2023, 0.1994, 0.2010])
+
     if args.aug_plus:
         # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
+        # augmentation for CIFAR datasets
         augmentation = [
             transforms.RandomResizedCrop(32, scale=(0.2, 1.)),
             transforms.RandomApply([
                 transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
             ], p=0.8),
             transforms.RandomGrayscale(p=0.2),
-            transforms.RandomApply([moco.loader.GaussianBlur([.1, 2.])], p=0.5),
+            # transforms.RandomApply([moco.loader.GaussianBlur([.1, 2.])], p=0.5),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize
@@ -403,3 +410,5 @@ def accuracy(output, target, topk=(1,)):
 
 if __name__ == '__main__':
     main()
+
+# CIFAR train command MoCo v2: CUDA_VISIBLE_DEVICES=6,7 python main_moco.py   -a resnet18   --lr  0.015   --batch-size 256   --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0 --mlp --moco-t 0.2 --aug-plus --cos

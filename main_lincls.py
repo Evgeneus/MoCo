@@ -251,8 +251,12 @@ def main_worker(gpu, ngpus_per_node, args):
     # Data loading code
     # traindir = os.path.join(args.data, 'train')
     # valdir = os.path.join(args.data, 'val')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                  std=[0.229, 0.224, 0.225])
+
+    # normalize CIFAR
+    normalize = transforms.Normalize(mean=[0.4914, 0.4822, 0.4465],
+                                     std=[0.2023, 0.1994, 0.2010])
 
     # train_dataset = datasets.ImageFolder(
     #     traindir,
@@ -529,3 +533,6 @@ def accuracy(output, target, topk=(1,)):
 
 if __name__ == '__main__':
     main()
+
+
+# CIFAR eval command: CUDA_VISIBLE_DEVICES=6,7 python main_lincls.py   -a resnet18   --lr 30.0   --batch-size 256   --pretrained checkpoints/checkpoint_0199.pth   --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1 --rank 0
